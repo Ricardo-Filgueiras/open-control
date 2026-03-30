@@ -1,0 +1,20 @@
+# --- JARVIS CORE ---
+langchain>=0.1.0
+langchain-community
+langchain-openai
+langchain-google-genai
+langchain-ollama
+
+# --- BACKEND & INTERFACE ---
+fastapi
+uvicorn[standard]
+aiogram>=3.0.0
+websockets
+python-dotenv
+pydantic>=2.0.0
+pydantic-settings
+streamlit
+
+# --- PERSISTENCE ---
+aiosqlite
+
