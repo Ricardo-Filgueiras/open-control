@@ -1,4 +1,14 @@
 import streamlit as st
+import sys
+import os
+from pathlib import Path
+
+# Adiciona o diretório 'src' ao sys.path para permitir imports absolutos
+root_path = Path(__file__).resolve().parent.parent.parent
+src_path = root_path / "src"
+if str(src_path) not in sys.path:
+    sys.path.insert(0, str(src_path))
+
 from app.services.agent_service import AgentService
 from app.state.session_manager import SessionManager
 from app.components.chat_window import render_chat

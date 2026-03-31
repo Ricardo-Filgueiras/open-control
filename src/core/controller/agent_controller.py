@@ -20,6 +20,7 @@ class AgentController:
         self.google_api_key = os.getenv("GOOGLE_API_KEY")
         self.model_google = os.getenv("MODEL_GOOGLE", "gemini-1.5-flash")
         self.model_local = os.getenv("MODEL_LOCAL", "llama3.2:1b")
+        self.ollama_host = os.getenv("OLLAMA_HOST", "http://localhost:11434")
 
     def _get_llm(self):
         """Seleciona o provedor com base no .env"""
@@ -31,7 +32,7 @@ class AgentController:
                 google_api_key=self.google_api_key
             )
         elif self.provider == "local":
-            return ChatOllama(model=self.model_local)
+            return ChatOllama(model=self.model_local, base_url=self.ollama_host )
         else:
             raise ValueError(f"Sir, o provedor '{self.provider}' é desconhecido.")
 
