@@ -1,6 +1,7 @@
 import json
 from typing import Optional
 from core.tools.loader import ToolLoader
+from pydantic import BaseModel, Field
 
 class ToolRouter:
     """Roteia user intent para a tool apropriada"""
@@ -17,26 +18,26 @@ class ToolRouter:
         Returns:
             tool_id se encontrada, None caso contrário
         """
-        tools_summary = ToolLoader.get_tool_summary()
+        loader = ToolLoader()
+        tools_summary = loader.get_tool_summary()
         
         if not tools_summary:
             return None
         
         # Construir prompt para o router
         system_prompt = """Você é um Router de Ferramentas. Analisando a intenção do usuário, escolha a ferramenta MAIS apropriada.
-
-Ferramentas disponíveis:
-"""
+            Ferramentas disponíveis:
+            """
         for tool in tools_summary:
             system_prompt += f"- {tool['name']} (id: {tool['id']}): {tool['description']}\n"
         
         system_prompt += """\nRESPONDA APENAS com um JSON válido neste formato exato:
-{"toolId": "id_da_tool"}
-ou
-{"toolId": null}
+                        {"toolId": "id_da_tool"}
+                        ou
+                        {"toolId": null}
 
-Se a intenção não combina com nenhuma ferramenta, retorne null.
-Não adicione explicação, apenas o JSON."""
+                        Se a intenção não combina com nenhuma ferramenta, retorne null.
+                        Não adicione explicação, apenas o JSON."""
         
         try:
             # Prepara o prompt completo para o LLM

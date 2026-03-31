@@ -784,7 +784,7 @@ requires-dist = [
     { name = "aiogram", specifier = ">=3.0.0" },
     { name = "aiosqlite", specifier = ">=0.22.1" },
     { name = "fastapi", specifier = ">=0.135.2" },
-    { name = "langchain", specifier = ">=0.1.0" },
+    { name = "langchain", specifier = ">=1.2" },
     { name = "langchain-community", specifier = ">=0.4.1" },
     { name = "langchain-google-genai", specifier = ">=4.2.1" },
     { name = "langchain-ollama", specifier = ">=1.0.1" },

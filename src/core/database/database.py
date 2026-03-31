@@ -1,28 +1,45 @@
 import sqlite3
+import threading
 from pathlib import Path
 from datetime import datetime
 from typing import Optional, Tuple
 
 class Database:
-    """Gerenciador de conexão e schema SQLite"""
+    """Gerenciador de conexão e schema SQLite (Singleton Thread-Safe)"""
     
+    _instance = None
+    _initialized = False
+    _lock = threading.Lock()
     DB_PATH = Path(__file__).parent.parent.parent.parent / "jarvis.db"
     
+    def __new__(cls):
+        with cls._lock:
+            if cls._instance is None:
+                cls._instance = super(Database, cls).__new__(cls)
+        return cls._instance
+    
     def __init__(self):
-        self.connection = None
-        self.init_db()
+        if not self._initialized:
+            with self._lock:
+                if not self._initialized:
+                    self.connection = None
+                    self.lock = threading.Lock()
+                    self.init_db()
+                    Database._initialized = True
     
     def get_connection(self):
-        """Retorna conexão com o banco"""
-        if self.connection is None:
-            self.connection = sqlite3.connect(
-                self.DB_PATH,
-                detect_types=sqlite3.PARSE_DECLTYPES
-            )
-            # Registrar conversor para datetime
-            sqlite3.register_adapter(datetime, lambda val: val.isoformat())
-            sqlite3.register_converter("timestamp", lambda val: datetime.fromisoformat(val.decode()))
-        return self.connection
+        """Retorna conexão com o banco (thread-safe para Streamlit)"""
+        with self.lock:
+            if self.connection is None:
+                self.connection = sqlite3.connect(
+                    self.DB_PATH,
+                    check_same_thread=False,
+                    detect_types=sqlite3.PARSE_DECLTYPES
+                )
+                # Registrar conversor para datetime
+                sqlite3.register_adapter(datetime, lambda val: val.isoformat())
+                sqlite3.register_converter("timestamp", lambda val: datetime.fromisoformat(val.decode()))
+            return self.connection
     
     def init_db(self):
         """Inicializa o banco de dados e cria schema"""

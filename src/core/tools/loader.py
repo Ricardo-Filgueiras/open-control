@@ -2,23 +2,30 @@ import os
 import re
 import yaml
 from pathlib import Path
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Any
+from langchain_core.tools import StructuredTool
+from core.tools.schemas import CalculatorArgs, InfoArgs, WebSearchArgs
+from core.tools.implementations import calculate, get_extended_info, web_search
+from pydantic import BaseModel, Field
 
-class ToolLoader:
+
+class ToolLoader(BaseModel):
     """Carrega tools dinamicamente do diretório .agents/tools"""
     
-    TOOLS_DIR = Path(__file__).parent.parent.parent.parent / ".agents" / "tools"
-    
-    @staticmethod
-    def load_all_tools() -> List[Dict]:
-        """Carrega todas as tools disponíveis"""
+    # Campo definido como fixo, mas usando Pydantic para validação se necessário
+    tools_dir: Path = Field(
+        default=Path(__file__).parent.parent.parent.parent / ".agents" / "tools"
+    )
+
+    def load_all_tools(self) -> List[Dict]:
+        """Carrega todas as ferramentas disponíveis no diretório .agents/tools"""
         tools = []
         
-        if not ToolLoader.TOOLS_DIR.exists():
-            print(f"⚠️ Diretório de tools não encontrado: {ToolLoader.TOOLS_DIR}")
+        if not self.tools_dir.exists():
+            print(f"⚠️ Diretório de tools não encontrado: {self.tools_dir}")
             return tools
         
-        for tool_dir in sorted(ToolLoader.TOOLS_DIR.iterdir()):
+        for tool_dir in sorted(self.tools_dir.iterdir()):
             if not tool_dir.is_dir():
                 continue
                 
@@ -28,7 +35,7 @@ class ToolLoader:
                 continue
             
             try:
-                tool_data = ToolLoader._parse_tool_md(tool_file)
+                tool_data = self._parse_tool_md(tool_file)
                 if tool_data:
                     tools.append(tool_data)
                     print(f"✅ Tool carregada: {tool_data['name']}")
@@ -37,8 +44,7 @@ class ToolLoader:
         
         return tools
     
-    @staticmethod
-    def _parse_tool_md(file_path: Path) -> Optional[Dict]:
+    def _parse_tool_md(self, file_path: Path) -> Optional[Dict]:
         """Parse YAML frontmatter + conteúdo do markdown"""
         with open(file_path, 'r', encoding='utf-8') as f:
             content = f.read()
@@ -65,19 +71,18 @@ class ToolLoader:
             print(f"Erro ao fazer parse do frontmatter: {e}")
             return None
     
-    @staticmethod
-    def get_tool_by_id(tool_id: str) -> Optional[Dict]:
+    def get_tool_by_id(self, tool_id: str) -> Optional[Dict]:
         """Retorna uma tool específica pelo ID"""
-        tools = ToolLoader.load_all_tools()
-        for tool in tools:
+        actual_tools = self.load_all_tools()
+
+        for tool in actual_tools:
             if tool["id"] == tool_id:
                 return tool
         return None
     
-    @staticmethod
-    def get_tool_summary() -> List[Dict]:
+    def get_tool_summary(self) -> List[Dict]:
         """Retorna sumário leve para o router"""
-        tools = ToolLoader.load_all_tools()
+        tools = self.load_all_tools()
         return [
             {
                 "name": t["name"],
@@ -87,3 +92,26 @@ class ToolLoader:
             }
             for t in tools
         ]
+
+    def get_langchain_tools(self) -> List[Any]:
+        """Retorna as ferramentas no formato StructuredTool do LangChain"""
+        # Mapeia IDs para schemas e implementações
+        mapping = {
+            "calculator": {"schema": CalculatorArgs, "func": calculate},
+            "info": {"schema": InfoArgs, "func": get_extended_info},
+            "web-search": {"schema": WebSearchArgs, "func": web_search}
+        }
+        
+        lc_tools = []
+        for t_id, data in mapping.items():
+            tool_info = self.get_tool_by_id(t_id)
+            if tool_info:
+                lc_tools.append(
+                    StructuredTool.from_function(
+                        func=data["func"],
+                        name=tool_info["id"], # Usando ID como nome funcional
+                        description=tool_info["description"],
+                        args_schema=data["schema"]
+                    )
+                )
+        return lc_tools

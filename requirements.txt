@@ -1,10 +1,10 @@
 # --- JARVIS CORE ---
-langchain>=0.1.0
+langchain>=1.2
 langchain-community
 langchain-openai
 langchain-google-genai
 langchain-ollama
-langchain_ollama
+
 
 # --- BACKEND & INTERFACE ---
 fastapi

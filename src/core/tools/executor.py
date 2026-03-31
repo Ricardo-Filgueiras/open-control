@@ -17,7 +17,8 @@ class ToolExecutor:
         Returns:
             Resposta da tool ou mensagem de erro
         """
-        tool = ToolLoader.get_tool_by_id(tool_id)
+        loader = ToolLoader()
+        tool = loader.get_tool_by_id(tool_id)
         
         if not tool:
             return f"❌ Tool '{tool_id}' não encontrada."
@@ -42,9 +43,11 @@ Responda baseado nas instruções dessa ferramenta."""
     @staticmethod
     def get_tool_info(tool_id: str) -> Optional[Dict[str, Any]]:
         """Retorna informações completas de uma tool"""
-        return ToolLoader.get_tool_by_id(tool_id)
+        loader = ToolLoader()
+        return loader.get_tool_by_id(tool_id)
     
     @staticmethod
     def list_all_tools() -> list:
         """Lista todas as tools disponíveis"""
-        return ToolLoader.get_tool_summary()
+        loader = ToolLoader()
+        return loader.get_tool_summary()

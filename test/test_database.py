@@ -9,7 +9,7 @@ from pathlib import Path
 from datetime import datetime
 
 # Adiciona src ao path
-src_path = Path(__file__).parent / "src"
+src_path = Path(__file__).parent.parent / "src"
 sys.path.insert(0, str(src_path))
 
 from core.database.repositories import SessionRepository, MessageRepository, MetadataRepository

@@ -8,7 +8,7 @@ import sys
 from pathlib import Path
 
 # Adiciona src ao path
-src_path = Path(__file__).parent / "src"
+src_path = Path(__file__).parent.parent / "src"
 sys.path.insert(0, str(src_path))
 
 from core.tools.loader import ToolLoader
@@ -21,12 +21,13 @@ def test_loader():
     print("🔧 TESTE 1: Carregador de Tools")
     print("="*60)
     
-    tools = ToolLoader.load_all_tools()
+    loader = ToolLoader()
+    tools = loader.load_all_tools()
     print(f"\n✅ {len(tools)} tool(s) carregada(s):")
     for tool in tools:
         print(f"   • {tool['name']} (id: {tool['id']}) - {tool['description']}")
     
-    summary = ToolLoader.get_tool_summary()
+    summary = loader.get_tool_summary()
     print(f"\n📋 Sumário de tools:")
     for t in summary:
         print(f"   • {t['name']}: {t['description']}")
@@ -39,7 +40,8 @@ def test_tool_retrieval():
     print("🔍 TESTE 2: Recuperação de Tool Específica")
     print("="*60)
     
-    tool = ToolLoader.get_tool_by_id("calculator")
+    loader = ToolLoader()
+    tool = loader.get_tool_by_id("calculator")
     if tool:
         print(f"\n✅ Tool 'calculator' encontrada:")
         print(f"   Nome: {tool['name']}")
